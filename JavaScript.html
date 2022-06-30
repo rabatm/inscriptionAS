@@ -1,0 +1,158 @@
+<script>
+  var CURRENTTD=0;
+  var TD=[];
+  var DATETD=[];
+  var Commentaire="";
+  var daySemaine=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+  google.script.run.withSuccessHandler(function(gsTD) 
+  {
+  $.each(gsTD, function(index, value) {
+    $('#TD').append("<button type=\"button\" class=\"btn btn-info btnTD\" name=\"btTD\" id="+ index +">" + value + "</button>  ");
+    TD.push(value);
+  });
+  $('#TD').on('change', function() {
+          CURRENTTD = $(this).val(); 
+      });
+
+      $('.btnTD').on('click', function() {
+        console.log(DATETD[$(this)[0].id])
+          if ( DATETD[$(this)[0].id] != "")
+          {
+            $("#div" +DATETD[$(this)[0].id]).text("");
+            $("#"+DATETD[$(this)[0].id]).show();
+            $("#"+DATETD[$(this)[0].id]).prop( "checked", false );
+            DATETD.splice($(this)[0].id,1);
+            $('#' + CURRENTTD).removeClass( "btn-warning");
+            $('#' + $(this)[0].id).addClass( "btn-info");
+            $('#' + $(this)[0].id).addClass("btn-warning");
+            
+          }
+          CURRENTTD = $(this)[0].id; 
+      });
+      $('#0').removeClass( "btn-info" );
+      $('#0').addClass( "btn-warning" );
+  }).getTD()
+
+  google.script.run.withSuccessHandler(function(horaires) 
+      {     
+        $.each(horaires, function(index,value) {
+          $DaysHTML="";
+          $DaysHTML="<div class=\"row\"><div class=\"col-12 bg-success  bg-gradient  border border-bottom\" style=\"--bs-bg-opacity: .5;\">"+ value + "</div>";
+          
+           $.each(daySemaine, function(indexDay,valueDay) {
+            $DaysHTML=$DaysHTML+`<div class="col-2 border border-bottom text-center"><input class="form-check-input " type="checkbox" value="" id="` + valueDay + index + `"><div id="div` + valueDay + index + `"></div></div>`      
+      })
+        $DaysHTML=$DaysHTML+"</div>"
+        $('#horairesDiv').append($DaysHTML);
+      })
+      
+      $('.form-check-input').change(function() {
+        var divC="#div" + this.id;      
+        if(TD[CURRENTTD] != undefined){
+                  $("#"+this.id).hide();
+                  //si un autre crénau a été choissi on le supprime.
+                  if (DATETD[CURRENTTD] != "" ) 
+                  {
+                      $("#div" +DATETD[CURRENTTD]).text("");
+                      $("#"+DATETD[CURRENTTD]).prop( "checked", false );
+                  }
+                  $(divC).text(TD[CURRENTTD]);
+                  DATETD[CURRENTTD]=this.id;
+                  console.log(TD.length + ' ' + CURRENTTD)
+                  if (CURRENTTD<TD.length)
+                  {
+                      $('#' + CURRENTTD).removeClass( "btn-warning");
+                      $('#' + CURRENTTD).removeClass("btn-info");
+                      $('#' + CURRENTTD).addClass( "btn-success" );
+                      CURRENTTD=CURRENTTD+1;
+                      $('#' + CURRENTTD).addClass( "btn-warning" );
+                     
+                  }
+                  else
+                  {
+                    $("#"+this.id).prop('checked', false); 
+                  }
+               }
+              if (CURRENTTD==TD.length)
+              {
+                $('#btnValider').prop('disabled', false);
+              }
+
+      });;  
+    
+
+    }).getHoraire();
+
+
+  $(function () {
+
+
+      $.each(daySemaine, function(index,value) {
+       // $('#days').append("<th scope=\"col\">" + value + "</th>");
+        $('#days').append("<div class=\"col-2\">" + value + "</div>");
+      });
+
+      $('#btnHome').click(function() {
+        google.script.run.withSuccessHandler(function(check) 
+        {
+          console.log(check);
+          switch(check) {
+          case -2:
+          $('#alertWARNING').prop('hidden', true);  
+          $('#alertERROR').prop('hidden', false);
+            break;
+          case -1:
+          $('#alertWARNING').prop('hidden', false);
+          $('#alertERROR').prop('hidden', true);
+            break;
+          default:
+          $('#HOME').prop('hidden', true);
+          $('#QUESTIONNAIRE').prop('hidden', false);
+          }
+        }).checkMAIL($("#mail").val());
+      
+      });
+      
+      $('#btnValider').click(function() {
+        google.script.run.saveForm($("#mail").val(),DATETD,$("#comTEXT").val());
+      });
+
+
+      $('.form-check-noTD').change(function() {
+          
+          console.log('no TD')
+          if(this.checked) {
+              if(TD[CURRENTTD] != undefined){
+                  //si un autre crénau a été choissi on le supprime.
+                  if (DATETD[CURRENTTD] != "" ) 
+                  {
+                      $("#div" +DATETD[CURRENTTD]).text("");
+                      $("#"+DATETD[CURRENTTD]).prop( "checked", false );
+                  }
+                  $(divC).text(TD[CURRENTTD]);
+                  DATETD[CURRENTTD]=this.id;
+
+                  if (CURRENTTD<TD.length)
+                  {
+                    $('#bt' + CURRENTTD).removeClass( "btn-warning");
+                      $('#bt' + CURRENTTD).removeClass("btn-info");
+                      $('#bt' + CURRENTTD).addClass( "btn-success" );
+                      $('#TD option[value=' + CURRENTTD  + ']').prop('selected', false);
+                      CURRENTTD=CURRENTTD+1;
+                      $('#TD option[value=' + CURRENTTD  + ']').prop('selected', true)
+                      $('#bt' + CURRENTTD).addClass( "btn-warning" );
+                  }
+              }
+                  $("#"+this.id).prop( "checked", false );
+          }
+          else
+          {
+              $(divC).text("");
+              DATETD[CURRENTTD]="";
+          }
+  
+      });;
+
+    });
+</script>
